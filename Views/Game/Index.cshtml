@@ -1,0 +1,365 @@
+﻿@using Big2.Models.Game
+@model Big2.Models.Game.Game
+@functions {
+    string GetSuitSymbol(Suit suit)
+    {
+        return suit switch
+        {
+            Suit.Diamond => "♦",
+            Suit.Club => "♣",
+            Suit.Heart => "♥",
+            Suit.Spade => "♠",
+            _ => ""
+        };
+    }
+    string GetRankDisplay(Rank rank)
+    {
+        return rank switch
+        {
+            Rank.Three => "3",
+            Rank.Four => "4",
+            Rank.Five => "5",
+            Rank.Six => "6",
+            Rank.Seven => "7",
+            Rank.Eight => "8",
+            Rank.Nine => "9",
+            Rank.Ten => "10",
+            Rank.Jack => "J",
+            Rank.Queen => "Q",
+            Rank.King => "K",
+            Rank.Ace => "A",
+            Rank.Two => "2",
+            _ => ""
+        };
+    }
+    int GetCenterSuitCount(Rank rank)
+    {
+        return rank switch
+        {
+            Rank.Three => 3,
+            Rank.Four => 4,
+            Rank.Five => 5,
+            Rank.Six => 6,
+            Rank.Seven => 7,
+            Rank.Eight => 8,
+            Rank.Nine => 9,
+            Rank.Ten => 10,
+            Rank.Ace => 1,
+            Rank.Two => 2,
+            _ => 0
+        };
+    }
+    string GetFaceCardImage(Rank rank)
+    {
+        return rank switch
+        {
+            Rank.Jack => "/images/cards/jack.png",
+            Rank.Queen => "/images/cards/queen.png",
+            Rank.King => "/images/cards/king.png",
+            _ => ""
+        };
+    }
+}
+
+@if (Model.IsGameOver)
+{
+    <div class="game-over-overlay">
+        <div class="game-over">
+            @if (Model.Winner != null && Model.Winner.IsAi)
+            {
+                <h2>Game Over!</h2>
+                <p>AI @Model.Winner.PlayerId Wins!</p>
+            }
+            else
+            {
+                <h2>You Win!</h2>
+            }
+            <button type="button" id="new-game-button">New Game</button>
+        </div>
+    </div>
+}
+<div class="game-container">
+    <div class="game-table" data-ai-turn="@(Model.CurrentPlayer?.IsAi == true ? "true" : "false")">
+
+        <!-- Player 2 -->
+        <div class="player-top @(Model.CurrentPlayer?.PlayerId == 2 ? "current-player" : "")">
+            <div class="ai-avatar">
+                <img src="~/images/avatars/ai2.png" alt="AI 2" />
+            </div>
+            <div class="player-name-area">
+                <div class="player-name">AI 2</div>
+                @if (Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 2 && !Model.IsFirstPlay)
+                {
+                    <div class="lead-crown @(Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 2 && !Model.IsFirstPlay ? "active" : "")">
+                        <img src="~/images/crown.png" alt="Lead" />
+                    </div>
+                }
+            </div>
+            <div class="ai-thinking @(Model.CurrentPlayer?.PlayerId == 2 ? "active" : "")">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="card-back-area ai-top-hand">
+                @{
+                    int ai2CardCount = Model.Players[2].Hand.Count;
+                }
+
+                @for (int i = 0; i < ai2CardCount; i++)
+                {
+                    double center = (ai2CardCount - 1) / 2.0;
+                    double distanceFromCenter = i - center;
+
+                    // AI 2 fans downward toward the center of the table
+                    double rotation = -distanceFromCenter * 2.0;
+                    double yOffset = Math.Pow(Math.Abs(distanceFromCenter), 2) * 0.65;
+
+                    // Same correction as Player 0:
+                    // prevent the outermost cards from separating too much
+                    if (i == 0 || i == ai2CardCount - 1)
+                    {
+                        yOffset *= 0.83;
+                    }
+
+                    <div class="card-back"
+                         style="--ai-rotation: @(rotation)deg; --ai-y: @(yOffset)px;">
+                    </div>
+                }
+            </div>
+            <div class="ai-hand-count">@Model.Players[2].Hand.Count</div>
+        </div>
+
+        <!-- Player 1 -->
+        <div class="player-left @(Model.CurrentPlayer?.PlayerId == 1 ? "current-player" : "")">
+            <div class="ai-avatar">
+                <img src="~/images/avatars/ai1.png" alt="AI 1" />
+            </div>
+            <div class="player-name-area">
+                <div class="player-name">AI 1</div>
+                @if (Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 1 && !Model.IsFirstPlay)
+                {
+                    <div class="lead-crown @(Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 1 && !Model.IsFirstPlay ? "active" : "")">
+                        <img src="~/images/crown.png" alt="Lead" />
+                    </div>
+                }
+            </div>
+            <div class="ai-thinking @(Model.CurrentPlayer?.PlayerId == 1 ? "active" : "")">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="card-back-area ai-left-hand">
+                @{
+                    int ai1CardCount = Model.Players[1].Hand.Count;
+                }
+
+                @for (int i = 0; i < ai1CardCount; i++)
+                {
+                    double center = (ai1CardCount - 1) / 2.0;
+                    double distanceFromCenter = i - center;
+
+                    // AI 1 fans toward the center of the table
+                    double rotation = distanceFromCenter * 2.0;
+                    double xOffset = Math.Pow(Math.Abs(distanceFromCenter), 2) * 0.55;
+
+                    // Prevent the outermost cards from separating too much
+                    if (i == 0 || i == ai1CardCount - 1)
+                    {
+                        xOffset *= 0.78;
+                    }
+
+                    <div class="card-back"
+                         style="--ai-rotation: @(rotation)deg; --ai-x: @(xOffset)px;">
+                    </div>
+                }
+            </div>
+            <div class="ai-hand-count">@Model.Players[1].Hand.Count</div>
+        </div>
+
+        <!-- Player 3 -->
+        <div class="player-right @(Model.CurrentPlayer?.PlayerId == 3 ? "current-player" : "")">
+            <div class="ai-avatar">
+                <img src="~/images/avatars/ai3.png" alt="AI 3" />
+            </div>
+            <div class="player-name-area">
+                <div class="player-name">AI 3</div>
+                @if (Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 3 && !Model.IsFirstPlay)
+                {
+                    <div class="lead-crown @(Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 3 && !Model.IsFirstPlay ? "active" : "")">
+                        <img src="~/images/crown.png" alt="Lead" />
+                    </div>
+                }
+            </div>
+            <div class="ai-thinking @(Model.CurrentPlayer?.PlayerId == 3 ? "active" : "")">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="card-back-area ai-right-hand">
+                @{
+                    int ai3CardCount = Model.Players[3].Hand.Count;
+                }
+
+                @for (int i = 0; i < ai3CardCount; i++)
+                {
+                    double center = (ai3CardCount - 1) / 2.0;
+                    double distanceFromCenter = i - center;
+
+                    double rotation = -distanceFromCenter * 2.0;
+                    double xOffset = Math.Pow(Math.Abs(distanceFromCenter), 2) * 0.55;
+
+                    // Prevent the outermost cards from separating too much
+                    if (i == 0 || i == ai3CardCount - 1)
+                    {
+                        xOffset *= 0.78;
+                    }
+
+                    <div class="card-back"
+                         style="--ai-rotation: @(rotation)deg; --ai-x: @(xOffset)px;">
+                    </div>
+                }
+            </div>
+            <div class="ai-hand-count">@Model.Players[3].Hand.Count</div>
+        </div>
+
+        <!-- Player 0 -->
+        <div class="player-bottom">
+            <div class="player-name-area">
+                <div class="player-name">YOU</div>
+                @if (Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 0 && !Model.IsFirstPlay)
+                {
+                    <div class="lead-crown @(Model.CurrentPlay == null && Model.CurrentPlayer?.PlayerId == 0 && !Model.IsFirstPlay ? "active" : "")">
+                    <img src="~/images/crown.png" alt="Lead" />
+                </div>
+                }
+            </div>
+            @if (Model.CurrentPlayer?.PlayerId == 0)
+            {
+                <div class="turn-indicator">
+                    Your Turn
+                </div>
+            }
+            <div class="hand">
+                @{
+                    var hand = Model.Players[0].Hand;
+                    int cardCount = hand.Count;
+                }
+
+                @for (int cardIndex = 0; cardIndex < cardCount; cardIndex++)
+                {
+                    var card = hand[cardIndex];
+
+                    // Calculate position relative to the center card
+                    double center = (cardCount - 1) / 2.0;
+                    double distanceFromCenter = cardIndex - center;
+
+                    // Fan rotation
+                    double rotation = distanceFromCenter * 2.0;
+
+                    // Cards further from the center sit slightly lower
+                    double yOffset = Math.Pow(Math.Abs(distanceFromCenter), 2) * 0.83;
+
+                    <div class="playing-card player-card @(Model.CurrentPlayer?.PlayerId == 0 ? "" : "disabled")"
+                         data-suit="@card.Suit"
+                         data-rank="@card.Rank"
+                         style="--card-rotation: @(rotation)deg; --card-y: @(yOffset)px;">
+
+                        <div class="card-corner">
+                            <span class="rank">@GetRankDisplay(card.Rank)</span>
+                            <span class="suit @card.Suit.ToString().ToLower()">
+                                @GetSuitSymbol(card.Suit)
+                            </span>
+                        </div>
+
+                        <div class="card-center @card.Suit.ToString().ToLower() rank-@card.Rank.ToString().ToLower()">
+                            @if (card.Rank == Rank.Jack ||
+                                 card.Rank == Rank.Queen ||
+                                 card.Rank == Rank.King)
+                            {
+                                <div class="face-card">
+                                    <img src="@GetFaceCardImage(card.Rank)"
+                                         alt="@GetRankDisplay(card.Rank)" />
+                                </div>
+                            }
+                            else
+                            {
+                                @for (int suitIndex = 0;
+                                      suitIndex < GetCenterSuitCount(card.Rank);
+                                      suitIndex++)
+                                {
+                                    <span>@GetSuitSymbol(card.Suit)</span>
+                                }
+                            }
+                        </div>
+
+                        <div class="card-corner-bottom">
+                            <span class="rank">@GetRankDisplay(card.Rank)</span>
+                            <span class="suit @card.Suit.ToString().ToLower()">
+                                @GetSuitSymbol(card.Suit)
+                            </span>
+                        </div>
+
+                    </div>
+                }
+            </div>
+            <div class="actions">
+                @{
+                    bool isMyTurn = Model.CurrentPlayer != null && !Model.CurrentPlayer.IsAi;
+                }
+                @if (isMyTurn)
+                {
+                    <button type="button" id="play-button">PLAY</button>
+                    <button type="button" id="pass-button">PASS</button>
+                }
+                else
+                {
+                    <button type="button" id="play-button" disabled>PLAY</button>
+                    <button type="button" id="pass-button" disabled>PASS</button>
+                }
+            </div>
+            <div id="game-error" class="game-error"></div>
+        </div>
+
+        <!-- Current Play -->
+        <div class="current-play">
+            @if (Model.CurrentPlay == null)
+            {
+                <div class="current-play-empty"></div>
+            }
+            else
+            {
+                <div class="current-play-cards">
+                    @foreach (var card in Model.CurrentPlay.Cards)
+                    {
+                        <div class="playing-card current-play-card">
+                            <div class="card-corner">
+                                <span class="rank">@GetRankDisplay(card.Rank)</span>
+                                <span class="suit @card.Suit.ToString().ToLower()">@GetSuitSymbol(card.Suit)</span>
+                            </div>
+                            <div class="card-center @card.Suit.ToString().ToLower() rank-@card.Rank.ToString().ToLower()">
+                                @if (card.Rank == Rank.Jack || card.Rank == Rank.Queen || card.Rank == Rank.King)
+                                {
+                                    <div class="face-card">
+                                        <img src="@GetFaceCardImage(card.Rank)" alt="@GetRankDisplay(card.Rank)" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    @for (int i = 0; i < GetCenterSuitCount(card.Rank); i++)
+                                    {
+                                        <span>@GetSuitSymbol(card.Suit)</span>
+                                    }
+                                }
+                            </div>
+                            <div class="card-corner-bottom">
+                                <span class="rank">@GetRankDisplay(card.Rank)</span>
+                                <span class="suit @card.Suit.ToString().ToLower()">@GetSuitSymbol(card.Suit)</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

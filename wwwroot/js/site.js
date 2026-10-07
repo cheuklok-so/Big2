@@ -40,10 +40,13 @@ document.querySelectorAll(".player-card").forEach(card => {
 // Import a card-playing sound
 function playCardSound() {
     const cardSound = new Audio("/sound/card-play.mp3");
-    cardSound.addEventListener("ended", function () {
+    cardSound.play()
+        .catch(() => {
+            // Audio autoplay no matter blocked by browser or not.
+        });
+    setTimeout(function () {
         window.location.reload();
-    });
-    cardSound.play();
+    }, 800);
 }
 
 // Click event for the play button for playing the selected cards.
@@ -85,10 +88,13 @@ playButton.addEventListener("click", function () {
 // Import a knock sound
 function playPassSound() {
     const passSound = new Audio("/sound/table-knock.mp3");
-    passSound.addEventListener("ended", function () {
+    passSound.play()
+        .catch(() => {
+            // Audio autoplay no matter blocked by browser or not.
+        });
+    setTimeout(function () {
         window.location.reload();
-    });
-    passSound.play();
+    }, 800);
 }
 
 // Click event for the pass button for passing the turn.

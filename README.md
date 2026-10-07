@@ -1,6 +1,9 @@
 # Big2
 A web-based "Big Two" card game developed with C# and ASP.NET Core MVC
 
+## Live Demo
+https://big2app-e0bpfkdvf5ahbugr.southeastasia-01.azurewebsites.net/
+
 ## About this project
 Big2 is a web-based implementation of the traditional Hong Kong "Big Two" card game, developed with C# and ASP.NET Core MVC
 The project focuses on implementing the game rules, hand evaluation, turn management, and AI opponents with different playing strategies

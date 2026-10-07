@@ -87,7 +87,7 @@ The project follows the ASP.NET Core MVC Structure:
 
 ### Run
 ```bash
-git clone <repository-url>
+git clone <https://github.com/cheuklok-so/Big2.git>
 cd Big2
 dotnet restore
 dotnet run
